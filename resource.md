@@ -248,7 +248,7 @@ No external public-data source is represented by CivicRoute as guaranteed comple
 **Video duration:** 08:41
 
 **Google Drive:**  
-https://drive.google.com/file/d/19J3p0jcaRjO40Urv5JzkNFMRd_4E0tIA/view?usp=drive_link
+https://drive.google.com/file/d/1HDRdpDZ2PZ-qCRcw6lXBFex7jPvzMUnD/view?usp=sharing
 
 **SHA-256:**  
 `4AC00459BD68FC47F7C4915D9E0672A1E07DD7B2A39DFD77DF3406F80A9FA80C`
@@ -282,7 +282,7 @@ https://meditation-eden-jump-news.trycloudflare.com
 > **Note:** If the live MVP is temporarily unavailable during review, kindly contact a Team MechMavrix member at **+91 63605 18036**. We will make the demo available as soon as possible.
 
 **Demo Video:**  
-https://drive.google.com/file/d/19J3p0jcaRjO40Urv5JzkNFMRd_4E0tIA/view?usp=drive_link
+https://drive.google.com/file/d/1HDRdpDZ2PZ-qCRcw6lXBFex7jPvzMUnD/view?usp=sharing
 
 **Video SHA-256 first 16:** `4AC00459BD68FC47`
 
