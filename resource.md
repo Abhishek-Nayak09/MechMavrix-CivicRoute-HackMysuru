@@ -279,6 +279,8 @@ https://drive.google.com/file/d/19J3p0jcaRjO40Urv5JzkNFMRd_4E0tIA/view?usp=drive
 **Live Working MVP:**  
 https://meditation-eden-jump-news.trycloudflare.com
 
+> **Note:** If the live MVP is temporarily unavailable during review, kindly contact a Team MechMavrix member at **+91 63605 18036**. We will make the demo available as soon as possible.
+
 **Demo Video:**  
 https://drive.google.com/file/d/19J3p0jcaRjO40Urv5JzkNFMRd_4E0tIA/view?usp=drive_link
 
