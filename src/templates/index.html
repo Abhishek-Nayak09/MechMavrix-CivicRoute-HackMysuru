@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        MechMavrix CivicRoute
+    </title>
+
+    <link
+        rel="stylesheet"
+        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    >
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='styles.css') }}"
+    >
+
+    <style>
+
+        .network-banner {
+            width: min(1100px, 92%);
+            margin: 18px auto 0;
+            padding: 12px 16px;
+            border-radius: 12px;
+
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .network-banner.online {
+            background: #ecfdf3;
+            color: #067647;
+            border: 1px solid #abefc6;
+        }
+
+        .network-banner.offline {
+            background: #fff4e5;
+            color: #9a3412;
+            border: 1px solid #fed7aa;
+        }
+
+        .network-left {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+        }
+
+        .network-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: currentColor;
+        }
+
+        .pending-badge {
+            background: rgba(255, 255, 255, 0.82);
+            padding: 5px 10px;
+            border-radius: 999px;
+            font-size: 12px;
+        }
+
+        .quick-links {
+            width: min(1100px, 92%);
+            margin: 12px auto 0;
+
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .quick-links a {
+            text-decoration: none;
+            color: #17345f;
+            background: white;
+            border: 1px solid #dbe3ef;
+
+            padding: 8px 12px;
+            border-radius: 9px;
+
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+    </style>
+</head>
+
+
+<body>
+
+
+    <!-- ==================================================
+         HEADER
+    =================================================== -->
+
+    <header class="topbar">
+
+        <div class="brand">
+
+            <h1>
+                MechMavrix CivicRoute
+            </h1>
+
+            <p>
+                Evidence-driven civic complaint routing
+            </p>
+
+        </div>
+
+    </header>
+
+
+
+    <!-- ==================================================
+         NETWORK / OFFLINE STATUS
+    =================================================== -->
+
+    <section
+        id="networkBanner"
+        class="network-banner online"
+    >
+
+        <div class="network-left">
+
+            <span class="network-dot"></span>
+
+            <span id="networkStatusText">
+                Online — complaints will be submitted immediately
+            </span>
+
+        </div>
+
+
+        <span
+            id="pendingQueueBadge"
+            class="pending-badge"
+        >
+            Pending offline reports: 0
+        </span>
+
+    </section>
+
+
+
+    <!-- ==================================================
+         QUICK LINKS
+    =================================================== -->
+
+    <div class="quick-links">
+
+        <a href="/track">
+            Track Complaint
+        </a>
+
+        <a href="/staff">
+            Staff Dashboard
+        </a>
+
+    </div>
+
+
+
+    <!-- ==================================================
+         MAIN
+    =================================================== -->
+
+    <main class="page-container">
+
+
+        <!-- ==================================================
+             HERO
+        =================================================== -->
+
+        <section class="hero">
+
+            <span class="hero-badge">
+                Civic Governance • Mysuru
+            </span>
+
+            <h2>
+                Report the problem.
+                <br>
+                We determine where it goes
+                and how urgent it is.
+            </h2>
+
+            <p>
+                Upload evidence and capture your live GPS.
+                CivicRoute automatically analyses the issue,
+                severity, surrounding risk, jurisdiction,
+                department and final priority.
+            </p>
+
+        </section>
+
+
+
+        <!-- ==================================================
+             COMPLAINT FORM
+        =================================================== -->
+
+        <section class="form-card">
+
+            <h2>
+                Report Civic Issue
+            </h2>
+
+            <p class="section-description">
+                Citizen provides evidence.
+                CivicRoute handles classification and routing.
+            </p>
+
+
+            <form
+                id="complaintForm"
+                enctype="multipart/form-data"
+            >
+
+
+                <!-- ==================================================
+                     PHOTO
+                =================================================== -->
+
+                <div class="form-group">
+
+                    <label for="photo">
+
+                        Complaint Photo
+
+                        <span class="required">
+                            *
+                        </span>
+
+                    </label>
+
+
+                    <input
+                        type="file"
+                        id="photo"
+                        name="photo"
+                        accept="image/*"
+                        capture="environment"
+                        required
+                    >
+
+
+                    <small>
+                        Take or upload a clear photo of the civic issue.
+                    </small>
+
+                </div>
+
+
+
+                <!-- ==================================================
+                     PHOTO PREVIEW
+                =================================================== -->
+
+                <div
+                    id="photoPreviewContainer"
+                    class="photo-preview-container hidden"
+                >
+
+                    <div class="preview-heading">
+
+                        <span>
+                            Uploaded Evidence
+                        </span>
+
+                        <span class="verified-badge">
+                            PHOTO
+                        </span>
+
+                    </div>
+
+
+                    <img
+                        id="photoPreview"
+                        class="photo-preview"
+                        alt="Uploaded civic complaint evidence"
+                    >
+
+                </div>
+
+
+
+                <!-- ==================================================
+                     GPS
+                =================================================== -->
+
+                <div class="form-group">
+
+                    <label>
+
+                        Current GPS Location
+
+                        <span class="required">
+                            *
+                        </span>
+
+                    </label>
+
+
+                    <button
+                        type="button"
+                        id="locationButton"
+                        class="location-button"
+                    >
+                        Capture Current Location
+                    </button>
+
+
+                    <div
+                        id="locationStatus"
+                        class="location-status"
+                    >
+                        Location not captured
+                    </div>
+
+                </div>
+
+
+
+                <!-- ==================================================
+                     LIVE LOCATION MAP
+                =================================================== -->
+
+                <div
+                    id="mapContainer"
+                    class="map-container hidden"
+                >
+
+                    <div class="preview-heading">
+
+                        <span>
+                            Live Complaint Location
+                        </span>
+
+                        <span class="verified-badge">
+                            GPS
+                        </span>
+
+                    </div>
+
+
+                    <div
+                        id="liveMap"
+                        class="live-map"
+                    ></div>
+
+
+                    <div class="map-details">
+
+
+                        <div>
+
+                            <span class="detail-label">
+                                Latitude
+                            </span>
+
+                            <strong id="mapLatitude">
+                                -
+                            </strong>
+
+                        </div>
+
+
+                        <div>
+
+                            <span class="detail-label">
+                                Longitude
+                            </span>
+
+                            <strong id="mapLongitude">
+                                -
+                            </strong>
+
+                        </div>
+
+
+                    </div>
+
+                </div>
+
+
+
+                <!-- ==================================================
+                     DESCRIPTION
+                =================================================== -->
+
+                <div class="form-group">
+
+                    <label for="description">
+
+                        Description
+
+                        <span class="optional">
+                            Optional
+                        </span>
+
+                    </label>
+
+
+                    <textarea
+                        id="description"
+                        name="description"
+                        rows="4"
+                        placeholder="Add any useful detail about the problem..."
+                    ></textarea>
+
+
+                    <small>
+                        No need to select department,
+                        issue type, severity or priority.
+                    </small>
+
+                </div>
+
+
+
+                <!-- ==================================================
+                     AUTOMATIC ANALYSIS
+                =================================================== -->
+
+                <div class="auto-analysis-box">
+
+                    <h3>
+                        CivicRoute automatically analyses
+                    </h3>
+
+
+                    <div class="analysis-grid">
+
+                        <div class="analysis-chip">
+                            GPS Location
+                        </div>
+
+                        <div class="analysis-chip">
+                            Nearby Risk Zones
+                        </div>
+
+                        <div class="analysis-chip">
+                            Problem Type
+                        </div>
+
+                        <div class="analysis-chip">
+                            Severity
+                        </div>
+
+                        <div class="analysis-chip">
+                            Civic Authority
+                        </div>
+
+                        <div class="analysis-chip">
+                            Department
+                        </div>
+
+                        <div class="analysis-chip">
+                            Priority
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+
+                <!-- ==================================================
+                     SUBMIT
+                =================================================== -->
+
+                <button
+                    type="submit"
+                    id="submitButton"
+                    class="submit-button"
+                    disabled
+                >
+                    Analyse & Route Complaint
+                </button>
+
+
+            </form>
+
+        </section>
+
+
+
+        <!-- ==================================================
+             RESULT
+        =================================================== -->
+
+        <section
+            id="resultSection"
+            class="result-card hidden"
+        >
+
+
+            <!-- ==================================================
+                 RESULT HEADER
+            =================================================== -->
+
+            <div class="result-header">
+
+                <div>
+
+                    <span class="result-badge">
+                        CIVICROUTE ANALYSIS
+                    </span>
+
+                    <h2>
+                        Complaint Submitted
+                    </h2>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- ==================================================
+                 COMPLAINT ID + STATUS
+            =================================================== -->
+
+            <div class="tracking-summary">
+
+
+                <div class="tracking-item">
+
+                    <span class="result-label">
+                        Complaint ID
+                    </span>
+
+                    <strong id="complaintId">
+                        -
+                    </strong>
+
+                    <small>
+                        Save this ID to track your complaint.
+                    </small>
+
+                </div>
+
+
+                <div class="tracking-item">
+
+                    <span class="result-label">
+                        Current Status
+                    </span>
+
+                    <strong id="complaintStatus">
+                        -
+                    </strong>
+
+                    <small>
+                        Status updates are recorded in the complaint history.
+                    </small>
+
+                </div>
+
+
+            </div>
+
+
+
+            <!-- ==================================================
+                 PHOTO + MAP
+            =================================================== -->
+
+            <div class="evidence-summary">
+
+
+                <div class="evidence-panel">
+
+                    <h3>
+                        Complaint Evidence
+                    </h3>
+
+                    <img
+                        id="resultPhoto"
+                        class="result-photo"
+                        alt="Complaint evidence"
+                    >
+
+                </div>
+
+
+
+                <div class="evidence-panel">
+
+                    <h3>
+                        Complaint Location & Authority
+                    </h3>
+
+                    <div
+                        id="resultMap"
+                        class="result-map"
+                    ></div>
+
+                </div>
+
+
+            </div>
+
+
+
+            <!-- ==================================================
+                 ANALYSIS RESULTS
+            =================================================== -->
+
+            <div class="result-grid">
+
+
+                <div class="result-item">
+
+                    <span class="result-label">
+                        Detected Issue
+                    </span>
+
+                    <strong id="detectedIssue">
+                        -
+                    </strong>
+
+                </div>
+
+
+
+                <div class="result-item">
+
+                    <span class="result-label">
+                        Estimated Severity
+                    </span>
+
+                    <strong id="detectedSeverity">
+                        -
+                    </strong>
+
+                </div>
+
+
+
+                <div class="result-item">
+
+                    <span class="result-label">
+                        Location Risk
+                    </span>
+
+                    <strong id="locationRisk">
+                        -
+                    </strong>
+
+                </div>
+
+
+
+                <div class="result-item">
+
+                    <span class="result-label">
+                        Responsible Authority
+                    </span>
+
+                    <strong id="authority">
+                        -
+                    </strong>
+
+                </div>
+
+
+
+                <div class="result-item">
+
+                    <span class="result-label">
+                        Department
+                    </span>
+
+                    <strong id="department">
+                        -
+                    </strong>
+
+                </div>
+
+
+
+                <div class="result-item priority-item">
+
+                    <span class="result-label">
+                        Final Priority
+                    </span>
+
+                    <strong id="priority">
+                        -
+                    </strong>
+
+                </div>
+
+
+
+                <div class="result-item">
+
+                    <span class="result-label">
+                        Priority Score
+                    </span>
+
+                    <strong id="priorityScore">
+                        -
+                    </strong>
+
+                </div>
+
+
+            </div>
+
+
+
+            <!-- ==================================================
+                 ADDRESS
+            =================================================== -->
+
+            <div class="location-result">
+
+                <span class="result-label">
+                    Detected Location
+                </span>
+
+                <p id="detectedLocation">
+                    -
+                </p>
+
+            </div>
+
+
+
+            <!-- ==================================================
+                 PRIORITY EXPLANATION
+            =================================================== -->
+
+            <div class="explanation-box">
+
+                <h3>
+                    Why this priority?
+                </h3>
+
+                <p id="priorityExplanation">
+                    -
+                </p>
+
+            </div>
+
+
+        </section>
+
+
+    </main>
+
+
+
+    <!-- ==================================================
+         FOOTER
+    =================================================== -->
+
+    <footer>
+
+        <p>
+            MechMavrix CivicRoute • HackMysuru 1.0
+        </p>
+
+    </footer>
+
+
+
+    <!-- ==================================================
+         JAVASCRIPT
+    =================================================== -->
+
+    <script
+        src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    ></script>
+
+
+    <!-- IndexedDB offline complaint queue -->
+    <script
+        src="{{ url_for('static', filename='offline-db.js') }}"
+    ></script>
+
+
+    <!-- Main CivicRoute application -->
+    <script
+        src="{{ url_for('static', filename='app.js') }}"
+    ></script>
+
+
+    <!--
+        Service Worker registration.
+        This enables cached app-shell loading when the browser
+        later loses internet connectivity.
+    -->
+    <script
+        src="{{ url_for('static', filename='register-sw.js') }}"
+    ></script>
+
+
+</body>
+
+</html>

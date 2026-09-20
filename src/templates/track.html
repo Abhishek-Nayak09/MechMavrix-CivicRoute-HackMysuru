@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        Track Complaint | CivicRoute
+    </title>
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='styles.css') }}"
+    >
+
+    <style>
+
+        .track-page {
+            width: min(1000px, 92%);
+            margin: 0 auto;
+            padding: 45px 0 70px;
+        }
+
+        .track-hero {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .track-hero span {
+            display: inline-block;
+            background: #e8f0ff;
+            color: #17345f;
+            padding: 7px 13px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 800;
+            margin-bottom: 12px;
+        }
+
+        .track-hero h2 {
+            color: #17345f;
+            font-size: 34px;
+            margin-bottom: 8px;
+        }
+
+        .track-hero p {
+            color: #667085;
+            max-width: 620px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        .track-search-card {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .track-search-row {
+            display: flex;
+            gap: 12px;
+        }
+
+        .track-search-row input {
+            flex: 1;
+            min-height: 48px;
+            border: 1px solid #cfd8e5;
+            border-radius: 9px;
+            padding: 10px 13px;
+            font-size: 15px;
+            text-transform: uppercase;
+        }
+
+        .track-button {
+            min-height: 48px;
+            border: none;
+            border-radius: 9px;
+            padding: 10px 22px;
+            background: #17345f;
+            color: white;
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        .track-error {
+            margin-top: 12px;
+            color: #b42318;
+            font-weight: 600;
+        }
+
+        .track-result {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            overflow: hidden;
+        }
+
+        .track-result-header {
+            padding: 22px;
+            border-bottom: 1px solid #e8edf3;
+            background: #fbfcfe;
+            display: flex;
+            justify-content: space-between;
+            gap: 18px;
+            flex-wrap: wrap;
+        }
+
+        .track-id-label {
+            color: #667085;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .track-id {
+            color: #17345f;
+            font-size: 21px;
+            font-weight: 800;
+        }
+
+        .status-large {
+            display: inline-block;
+            background: #e8f0ff;
+            color: #17345f;
+            padding: 9px 14px;
+            border-radius: 999px;
+            font-size: 13px;
+            font-weight: 800;
+        }
+
+        .track-summary {
+            display: grid;
+            grid-template-columns:
+                repeat(3, minmax(0, 1fr));
+            gap: 14px;
+            padding: 22px;
+        }
+
+        .summary-box {
+            border: 1px solid #e3e8ef;
+            background: #fafcff;
+            border-radius: 11px;
+            padding: 14px;
+        }
+
+        .summary-box span {
+            display: block;
+            color: #667085;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 5px;
+        }
+
+        .summary-box strong {
+            color: #17345f;
+            display: block;
+            overflow-wrap: anywhere;
+        }
+
+        .summary-wide {
+            grid-column: 1 / -1;
+        }
+
+        .timeline-section {
+            padding: 0 22px 25px;
+        }
+
+        .timeline-section h3 {
+            color: #17345f;
+            margin: 4px 0 18px;
+        }
+
+        .timeline {
+            position: relative;
+            padding-left: 28px;
+        }
+
+        .timeline::before {
+            content: "";
+            position: absolute;
+            left: 7px;
+            top: 6px;
+            bottom: 6px;
+            width: 2px;
+            background: #dbe4f0;
+        }
+
+        .timeline-event {
+            position: relative;
+            padding: 0 0 22px 15px;
+        }
+
+        .timeline-event::before {
+            content: "";
+            position: absolute;
+            left: -27px;
+            top: 5px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #17345f;
+            border: 3px solid white;
+            box-shadow: 0 0 0 2px #b9c9df;
+        }
+
+        .timeline-event strong {
+            color: #17345f;
+            display: block;
+            margin-bottom: 3px;
+        }
+
+        .timeline-event p {
+            margin: 3px 0;
+            color: #475467;
+        }
+
+        .timeline-event small {
+            color: #667085;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        @media (max-width: 750px) {
+
+            .track-search-row {
+                flex-direction: column;
+            }
+
+            .track-summary {
+                grid-template-columns: 1fr;
+            }
+
+            .summary-wide {
+                grid-column: auto;
+            }
+
+            .track-hero h2 {
+                font-size: 28px;
+            }
+        }
+
+    </style>
+</head>
+
+
+<body>
+
+    <header class="topbar">
+
+        <div class="brand">
+
+            <h1>
+                MechMavrix CivicRoute
+            </h1>
+
+            <p>
+                Citizen Complaint Tracking
+            </p>
+
+        </div>
+
+    </header>
+
+
+    <main class="track-page">
+
+
+        <!-- ==================================================
+             HERO
+        =================================================== -->
+
+        <section class="track-hero">
+
+            <span>
+                LIVE COMPLAINT STATUS
+            </span>
+
+            <h2>
+                Track Your Complaint
+            </h2>
+
+            <p>
+                Enter the Complaint ID received after submission
+                to view the current status and action history.
+            </p>
+
+        </section>
+
+
+
+        <!-- ==================================================
+             SEARCH
+        =================================================== -->
+
+        <section class="track-search-card">
+
+            <div class="track-search-row">
+
+                <input
+                    type="text"
+                    id="complaintIdInput"
+                    placeholder="Example: CR-20260920-4D86D7"
+                    autocomplete="off"
+                >
+
+                <button
+                    type="button"
+                    id="trackButton"
+                    class="track-button"
+                >
+                    Track Complaint
+                </button>
+
+            </div>
+
+            <div
+                id="trackError"
+                class="track-error hidden"
+            >
+            </div>
+
+        </section>
+
+
+
+        <!-- ==================================================
+             RESULT
+        =================================================== -->
+
+        <section
+            id="trackResult"
+            class="track-result hidden"
+        >
+
+
+            <div class="track-result-header">
+
+                <div>
+
+                    <span class="track-id-label">
+                        Complaint ID
+                    </span>
+
+                    <div
+                        id="trackComplaintId"
+                        class="track-id"
+                    >
+                        -
+                    </div>
+
+                </div>
+
+
+                <div>
+
+                    <span class="track-id-label">
+                        Current Status
+                    </span>
+
+                    <span
+                        id="trackStatus"
+                        class="status-large"
+                    >
+                        -
+                    </span>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- ==================================================
+                 SUMMARY
+            =================================================== -->
+
+            <div class="track-summary">
+
+
+                <div class="summary-box">
+
+                    <span>
+                        Detected Issue
+                    </span>
+
+                    <strong id="trackIssue">
+                        -
+                    </strong>
+
+                </div>
+
+
+                <div class="summary-box">
+
+                    <span>
+                        Priority
+                    </span>
+
+                    <strong id="trackPriority">
+                        -
+                    </strong>
+
+                </div>
+
+
+                <div class="summary-box">
+
+                    <span>
+                        Department
+                    </span>
+
+                    <strong id="trackDepartment">
+                        -
+                    </strong>
+
+                </div>
+
+
+                <div class="summary-box">
+
+                    <span>
+                        Responsible Authority
+                    </span>
+
+                    <strong id="trackAuthority">
+                        -
+                    </strong>
+
+                </div>
+
+
+                <div class="summary-box">
+
+                    <span>
+                        Assigned To
+                    </span>
+
+                    <strong id="trackAssignedTo">
+                        -
+                    </strong>
+
+                </div>
+
+
+                <div class="summary-box">
+
+                    <span>
+                        Submitted
+                    </span>
+
+                    <strong id="trackCreatedAt">
+                        -
+                    </strong>
+
+                </div>
+
+
+                <div class="summary-box summary-wide">
+
+                    <span>
+                        Complaint Location
+                    </span>
+
+                    <strong id="trackLocation">
+                        -
+                    </strong>
+
+                </div>
+
+
+                <div
+                    id="resolutionBox"
+                    class="summary-box summary-wide hidden"
+                >
+
+                    <span>
+                        Resolution / Action Taken
+                    </span>
+
+                    <strong id="trackResolution">
+                        -
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- ==================================================
+                 TIMELINE
+            =================================================== -->
+
+            <div class="timeline-section">
+
+                <h3>
+                    Complaint Progress
+                </h3>
+
+                <div
+                    id="trackTimeline"
+                    class="timeline"
+                >
+                </div>
+
+            </div>
+
+
+        </section>
+
+
+    </main>
+
+
+    <script
+        src="{{ url_for('static', filename='track.js') }}"
+    ></script>
+
+</body>
+
+</html>

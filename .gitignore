@@ -22,3 +22,9 @@ venv/
 .env.*
 !.env.example
 .DS_Store
+
+# CivicRoute runtime files
+data/
+.venv/
+__pycache__/
+*.pyc
