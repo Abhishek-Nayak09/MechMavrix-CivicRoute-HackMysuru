@@ -1,104 +1,488 @@
-# `<Project Name>` — `<one-line tagline>`
+# MechMavrix CivicRoute
 
-> HackMysuru 1.0 · Phase 1 · Civic Governance & Clean Mysuru
-> Team `<Team Name>` (`<Team ID>`)
+> Evidence-driven civic complaint routing for Mysuru.
 
-| 📎 Submission links | 📋 Templates | 🏗️ Architecture | 🛡️ Hard constraints | ⚙️ Setup | 🤖 AI usage | ⚠️ Limitations |
-|---|---|---|---|---|---|---|
-| [resource.md](./resource.md) | [resource-templates/](./resource-templates/) | [docs/architecture.md](./docs/architecture.md) | [docs/constraints.md](./docs/constraints.md) | [docs/setup.md](./docs/setup.md) | [ai.md](./ai.md) | [docs/limitations.md](./docs/limitations.md) |
-
-<!--
-This README is the overview. Detailed content lives in the linked files so each stays short.
-Keep the section ORDER below. Reviewers look for each section in the same place in every repo.
--->
+**Team:** MechMavrix  
+**Hackathon:** HackMysuru 1.0  
+**Track:** Civic Governance & Clean Mysuru  
+**Primary Subproblem:** Routing
 
 ---
 
-## 1. Problem Understanding
+## 1. Problem
 
-<!-- Which sub-problem did you pick and WHY that one? 5–8 sentences. -->
+Citizens often know **what problem they see**, but they may not know:
 
-**Chosen sub-problem:** `<e.g. Routing>`
+- Which civic authority owns the location
+- Which department should receive the complaint
+- How urgent the issue is
+- Whether a similar complaint already exists
+- What happens after submission
 
-- **The gap we saw:** `<What actually goes wrong today, in Mysuru terms>`
-- **Why it matters:** `<Consequence: delay, bounced complaints, lost trust, health risk>`
-- **Why we chose this over the others:** `<Your reasoning>`
-- **What "solved" looks like for us:** `<A measurable outcome, e.g. "a citizen never has to pick an office">`
+A complaint system that asks citizens to manually choose jurisdiction, department, severity or priority can create incorrect routing and delay.
 
-## 2. Target Users & Mysuru Context
+---
 
-| User | Their situation | What they need from us |
-|---|---|---|
-| `<Resident in a ward at the MCC–panchayat edge>` | `<No idea which office owns the drain; patchy 4G>` | `<Report once, see who owns it, see status>` |
-| `<Panchayat / MCC officer>` | `<...>` | `<...>` |
-| `<Sanitation / field worker>` | `<Basic Android phone, low data>` | `<...>` |
+## 2. Our Solution
 
-**Local context we designed for:** `<jurisdiction overlap, connectivity, Kannada/English, device types, literacy>`
+**CivicRoute** asks the citizen for only:
 
-## 3. Solution Overview
+1. Complaint photo
+2. Current GPS location
+3. Optional description
 
-<!-- Plain language. A non-engineer should follow this. -->
+The system then performs the remaining routing workflow automatically.
 
-`<2–4 sentence summary>`
+CivicRoute analyses:
 
-**Core flow:**
-1. `<Citizen does X>`
-2. `<System does Y>`
-3. `<Staff does Z>`
-4. `<Citizen sees outcome>`
+- Civic issue type
+- Visual severity
+- Location context
+- Nearby public-risk locations
+- Jurisdiction rule
+- Responsible authority
+- Responsible department
+- Priority score
+- Duplicate candidates
 
-**Screenshots:** `<2–4 images under docs/images/, each < 1 MB>`
+It then creates a persistent complaint ID that can be tracked by the citizen and managed by civic staff.
 
-## 4. Architecture
+---
 
-`<One-sentence summary, e.g. "Offline-first PWA → REST API → PostgreSQL/PostGIS, with a rules-based routing service.">`
+## 3. Core Workflow
 
-➡️ Diagram, components, data model and APIs: **[docs/architecture.md](./docs/architecture.md)**
-
-## 5. Tech Stack & AI Usage
-
-**Stack:** `<React PWA · FastAPI · PostgreSQL + PostGIS · Render>` (full rationale in [docs/architecture.md](./docs/architecture.md#tech-stack))
-
-**AI tools used in development:** `<ChatGPT, Copilot, ...>`
-**AI inside the product:** `<e.g. YOLOv8 for bin detection / none>`
-
-➡️ Full disclosure: **[ai.md](./ai.md)**
-
-## 6. Decision Log (Summary)
-
-<!-- The full 1-page Decision Log is a PDF on Google Drive, linked in resource.md. ≤ 3 lines here. -->
-
-- **Chose:** `<approach>`, **over:** `<rejected alternative>`
-- **Because:** `<the trade-off in one line>`
-- **First thing to break at city scale:** `<one line>`
-
-➡️ Full decision log: **[resource.md](./resource.md#4-submission-artifacts-google-drive)** · Template: **[decision-log-template.md](./resource-templates/decision-log-template.md)**
-
-## 7. Setup & Run
-
-```bash
-git clone <repo-url> && cd <repo>
-<one-line install> && <one-line run>
+```text
+Citizen
+   |
+   | Photo + GPS + optional description
+   v
+CivicRoute
+   |
+   +--> Validate evidence
+   |
+   +--> Server-side location context
+   |
+   +--> AI issue classification
+   |
+   +--> AI severity estimation
+   |
+   +--> Duplicate protection
+   |
+   +--> Jurisdiction routing
+   |
+   +--> Department routing
+   |
+   +--> Priority calculation
+   |
+   v
+Complaint Database
+   |
+   +--> Citizen Tracking
+   |
+   +--> Staff Dashboard
+   |
+   +--> Status History
 ```
 
-➡️ Prerequisites, environment variables, seed data and offline testing: **[docs/setup.md](./docs/setup.md)**
+---
 
-## 8. Known Limitations
+## 4. Priority Model
 
-- `<Top limitation 1>`
-- `<Top limitation 2>`
-- `<Top limitation 3>`
+CivicRoute uses a transparent 100-point model.
 
-➡️ Full list, edge cases and scaling roadmap: **[docs/limitations.md](./docs/limitations.md)**
+| Component | Maximum Score |
+|---|---:|
+| Location Risk | 50 |
+| Problem Type | 30 |
+| Severity | 20 |
+| **Total** | **100** |
+
+Location is intentionally given the highest weight because the same issue can have very different public impact depending on where it occurs.
+
+Examples of nearby public-risk context include:
+
+- Hospital / clinic
+- School / college / university
+- Traffic signal
+- Bus station
+- Marketplace
+
+CivicRoute does **not** claim real-time crowd density.
 
 ---
 
-## Team
+## 5. AI-Assisted Complaint Analysis
 
-| Name | Role | GitHub |
-|---|---|---|
-| `<...>` | `<...>` | `@<...>` |
+The prototype uses **OpenAI CLIP ViT-B/32** through Hugging Face Transformers for local zero-shot image classification.
 
-## License
+Supported examples include:
 
-`<MIT / Apache-2.0 / None>`. You retain full ownership of your code.
+- Pothole / road damage
+- Garbage dump / litter
+- Overflowing dustbin
+- Open manhole / open drain
+- Blocked drain
+- Sewage overflow
+- Waterlogging
+- Construction debris
+- Burning waste
+- Dead animal
+- Broken streetlight
+- Damaged footpath
+- Fallen tree / road obstruction
+- Broken traffic signal
+
+Low-confidence or ambiguous evidence is routed to `REVIEW REQUIRED` instead of forcing an automatic decision.
+
+---
+
+## 6. Server-Side Location Context
+
+The browser sends GPS coordinates to the backend.
+
+The backend independently derives location context using public map services:
+
+- OpenStreetMap
+- Nominatim
+- Overpass API
+
+Frontend-provided address, risk score or priority values are not trusted as authoritative backend inputs.
+
+If external location context cannot be sufficiently obtained, CivicRoute falls back to human review rather than silently assuming a result.
+
+---
+
+## 7. Jurisdiction Routing
+
+The prototype includes a **versioned jurisdiction rule engine**.
+
+Each rule can contain:
+
+- Rule ID
+- Jurisdiction
+- Authority
+- Effective-from date
+- Effective-to date
+- Source metadata
+- Provenance status
+
+Inactive or unverified rules are prevented from being automatically activated.
+
+The current hackathon prototype uses locality-based rules for demonstration.
+
+> Production deployment would require authoritative civic GIS boundary data. The current keyword rules must not be interpreted as official legal boundary polygons.
+
+---
+
+## 8. Duplicate Protection
+
+CivicRoute uses two levels of duplicate handling.
+
+### Exact duplicate
+
+If the same image bytes are submitted again from a nearby location, CivicRoute can reuse the existing complaint instead of creating another record.
+
+### Nearby recent duplicate candidate
+
+If a recent unresolved complaint for the same detected issue exists very close to the new report, the new submission is flagged for review.
+
+This is treated as a **duplicate candidate**, not automatically as spam.
+
+---
+
+## 9. Offline Support
+
+CivicRoute supports weak-network and offline reporting.
+
+Implemented using:
+
+- Service Worker
+- Cache API
+- IndexedDB
+
+When connectivity is lost:
+
+```text
+Citizen Report
+     |
+     v
+IndexedDB Offline Queue
+     |
+     | Internet restored
+     v
+Automatic Sync
+     |
+     v
+Backend Complaint ID
+```
+
+The application shell can also reopen from cache after it has been loaded online at least once.
+
+Fresh online map tiles and external map-service requests may be unavailable while completely offline.
+
+---
+
+## 10. Citizen Tracking
+
+Each accepted complaint receives a persistent ID such as:
+
+```text
+CR-20260920-ABC123
+```
+
+Citizens can use `/track` to view:
+
+- Current status
+- Detected issue
+- Responsible authority
+- Department
+- Priority
+- Location
+- Assignment information
+- Resolution information
+- Complaint timeline
+
+---
+
+## 11. Staff Dashboard
+
+Staff can use `/staff` to:
+
+- View submitted complaints
+- Filter complaints
+- Search complaint IDs
+- Inspect evidence
+- Assign complaints
+- Start work
+- Update complaint status
+- Resolve complaints
+- View complaint history
+
+The current staff interface is a hackathon prototype and does not yet include production-grade staff authentication or role-based access control.
+
+---
+
+## 12. Technology Stack
+
+### Backend
+- Python 3.10+
+- Flask
+- SQLite
+- Pillow
+
+### AI
+- PyTorch
+- Transformers
+- OpenAI CLIP ViT-B/32
+
+### Frontend
+- HTML
+- CSS
+- JavaScript
+- Leaflet
+
+### Offline
+- Service Worker
+- Cache API
+- IndexedDB
+
+### Public Map Context
+- OpenStreetMap
+- Nominatim
+- Overpass API
+
+---
+
+## 13. Repository Structure
+
+```text
+MechMavrix-submission/
+|
+|-- README.md
+|-- resource.md
+|-- ai.md
+|-- requirements.txt
+|
+|-- docs/
+|   |-- architecture.md
+|   |-- constraints.md
+|   |-- limitations.md
+|   |-- setup.md
+|
+|-- src/
+|   |-- app.py
+|   |-- database.py
+|   |-- jurisdiction.py
+|   |-- boundary_sources.py
+|   |-- location_engine.py
+|   |
+|   |-- templates/
+|   |   |-- index.html
+|   |   |-- track.html
+|   |   `-- staff.html
+|   |
+|   `-- static/
+|       |-- styles.css
+|       |-- app.js
+|       |-- track.js
+|       |-- staff.js
+|       |-- offline-db.js
+|       |-- register-sw.js
+|       `-- sw.js
+|
+`-- tests/
+    |-- verify_system.py
+    |-- verify_boundary_sources.py
+    |-- verify_boundary_versioning.py
+    `-- verify_ai_benchmark.py
+```
+
+---
+
+## 14. Local Setup
+
+### Create virtual environment
+
+```bash
+python -m venv .venv
+```
+
+### Activate on Windows
+
+```bash
+.venv\Scripts\activate
+```
+
+### Install dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+### Start CivicRoute
+
+```bash
+python src/app.py
+```
+
+Open:
+
+```text
+http://127.0.0.1:5000
+```
+
+Citizen tracking:
+
+```text
+http://127.0.0.1:5000/track
+```
+
+Staff dashboard:
+
+```text
+http://127.0.0.1:5000/staff
+```
+
+---
+
+## 15. Verification Tests
+
+Core logic tests are available inside `tests/`.
+
+Example:
+
+```bash
+python tests/verify_system.py
+python tests/verify_boundary_sources.py
+python tests/verify_boundary_versioning.py
+```
+
+The tests cover areas including:
+
+- Jurisdiction routing
+- Versioned rules
+- Rule provenance
+- Priority calculation
+- Invalid input handling
+- Review fallbacks
+
+---
+
+## 16. Safety-by-Design Decisions
+
+CivicRoute deliberately avoids several unsafe assumptions:
+
+- Citizens do not manually choose final priority
+- Low-confidence AI output is not forced into automatic routing
+- Nearby complaints are not automatically labelled as spam
+- Public map data is not represented as perfect or complete
+- Locality rules are not represented as official GIS boundaries
+- Offline submissions receive a temporary local ID before server sync
+- Routing decisions preserve complaint history for follow-through
+
+---
+
+## 17. Current Prototype Limitations
+
+This HackMysuru MVP is not a production municipal deployment.
+
+Important limitations include:
+
+- Public OpenStreetMap coverage can be incomplete
+- External Nominatim / Overpass services can be unavailable or rate-limited
+- CLIP zero-shot confidence is not a calibrated civic-risk probability
+- Current jurisdiction rules are demonstration rules, not legal GIS polygons
+- SQLite is suitable for the MVP but not intended for large distributed deployment
+- Staff authentication and RBAC are not yet implemented
+- Exact-image hashing does not detect every edited or cropped duplicate
+- Offline maps cannot fetch uncached internet map tiles
+
+See `docs/limitations.md` for the detailed limitations.
+
+---
+
+## 18. Demo Links
+
+### Local MVP
+`http://127.0.0.1:5000`
+
+### Public MVP
+Will be added before final submission.
+
+### Public GitHub Repository
+Will be added before final submission.
+
+---
+
+## 19. HackMysuru Demonstration Flow
+
+The recommended continuous demo is:
+
+1. Open Citizen Portal
+2. Upload civic issue photo
+3. Capture GPS
+4. Analyse and route complaint
+5. Show automatic authority / department / priority
+6. Show persistent complaint ID
+7. Track complaint from Citizen Tracking
+8. Open Staff Dashboard
+9. Assign complaint
+10. Update complaint status
+11. Show history
+12. Demonstrate bad / ambiguous input
+13. Disconnect network
+14. Submit complaint offline
+15. Show IndexedDB pending queue
+16. Reconnect
+17. Show automatic sync
+
+---
+
+## 20. Team
+
+**MechMavrix**
+
+HackMysuru 1.0  
+Civic Governance & Clean Mysuru
+
+> Citizens report the evidence. CivicRoute handles the routing logic.

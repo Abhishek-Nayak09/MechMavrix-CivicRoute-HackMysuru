@@ -1,85 +1,230 @@
-# AI Usage Disclosure
+# ai.md
 
-[← Back to README](./README.md)
+# MechMavrix CivicRoute — AI Usage Disclosure
 
-> AI tools are **100% permitted** at HackMysuru 1.0. Disclosing them is **mandatory**.
-> Using AI never costs you points. Not being able to explain code you submitted does.
-> Reviewers check this file against your commit history and the AI segment of your video.
-
-<!--
-This file covers two different things. Keep them separate:
-  Section 1: AI tools YOU used while building (ChatGPT, Copilot, Cursor, Claude, v0, ...)
-  Section 3: AI models your PRODUCT uses at runtime (vision model, LLM classifier, ...)
-If you used no AI at all, say so explicitly in the Summary and delete the rest.
--->
+This file documents how artificial intelligence was used in the CivicRoute HackMysuru 1.0 project.
 
 ---
 
-## Summary
+## 1. AI Used Inside the Product
 
-| Question | Answer |
-|---|---|
-| Did we use AI tools during development? | `<Yes / No>` |
-| Does our product use AI/ML at runtime? | `<Yes / No>` |
-| Roughly how much of the code was AI-assisted? | `<e.g. ~40% of frontend, ~15% of backend, 0% of routing logic>` |
-| Can every team member explain the AI-assisted code? | `<Yes>` |
+CivicRoute uses a local vision-language model for complaint evidence analysis.
 
----
+### Model
 
-## 1. AI Tools Used During Development
+**OpenAI CLIP ViT-B/32**
 
-| Tool | Model / plan | Used by | What we used it for |
-|---|---|---|---|
-| `<ChatGPT>` | `<GPT-x, free>` | `<@handle>` | `<Debugging CORS errors, regex for phone validation>` |
-| `<GitHub Copilot>` | `<...>` | `<@handle, @handle>` | `<Autocomplete in React components>` |
-| `<Cursor / Claude / v0 / ...>` | `<...>` | `<...>` | `<...>` |
+Hugging Face model identifier:
 
-## 2. Where AI Helped in the Codebase
+`openai/clip-vit-base-patch32`
 
-| Area / file | Level of AI help | What a human did |
-|---|---|---|
-| `src/<frontend/components/>` | `<High: scaffolded by v0>` | `<Rewrote state handling, added offline queue>` |
-| `src/<api/routes.py>` | `<Medium: Copilot suggestions>` | `<Designed endpoints, wrote validation>` |
-| `src/<routing/engine.py>` | `<None>` | `<Written by hand, core logic>` |
-| `<README / docs>` | `<...>` | `<...>` |
+### Framework
 
-**Commit convention (optional, recommended):** commits containing substantial AI-generated code are tagged `[ai]` in the message, e.g. `feat: ward status page [ai]`.
+- Hugging Face Transformers
+- PyTorch
 
-## 3. AI Inside the Product (runtime)
+### Purpose
 
-<!-- Delete this section if your product uses no AI/ML at runtime. -->
+The model is used for:
 
-| Model / API | What it does in our product | Hosted where | Trained / fine-tuned by us? |
-|---|---|---|---|
-| `<YOLOv8n>` | `<Detects overflowing bins in photos>` | `<On server / on device>` | `<Fine-tuned on 300 labelled images>` |
-| `<LLM API>` | `<Classifies complaint text into issue types>` | `<Provider API>` | `<No, prompt only>` |
+- Civic issue type estimation from the uploaded complaint photo
+- Visual severity estimation
+- Confidence-based review fallback
 
-- **Accuracy we measured:** `<e.g. 82% precision on 50 held-out images>` (or "not measured yet")
-- **What happens when the model is wrong:** `<fallback, human review, confidence threshold>`
-- **Does it work offline?** `<...>`
-- **Citizen data sent to third parties:** `<none / what, and why>`
-- **Cost at city scale:** `<rough estimate, or "unknown">`
+Examples of supported complaint classes include:
 
-## 4. Key Prompts (optional, max 5)
-
-<!-- Only prompts that shaped a real design or code decision. Not a full chat log. -->
-
-| # | Prompt (short) | What we kept | What we changed or rejected |
-|---|---|---|---|
-| 1 | `<"Suggest a schema for complaints with geo-dedup">` | `<Table layout>` | `<Replaced lat/lng floats with PostGIS geography>` |
-
-## 5. How We Verified AI Output
-
-- `<e.g. Every AI-generated function was run against our seed data before merging>`
-- `<e.g. Rejected suggestions that stored photos in the database as base64>`
-- `<Example of a bug an AI tool introduced and how we caught it>`
-
-## 6. What We Deliberately Did *Not* Use AI For
-
-- `<e.g. The Decision Log — written by the team in our own words>`
-- `<e.g. The jurisdiction routing rules>`
+- Pothole / road damage
+- Garbage dump / litter
+- Overflowing dustbin
+- Open manhole / open drain
+- Blocked drain
+- Sewage overflow
+- Waterlogging
+- Construction debris
+- Burning waste
+- Dead animal
+- Broken streetlight
+- Damaged footpath
+- Fallen tree / obstruction
+- Broken traffic signal
 
 ---
 
-**Declaration:** We confirm this disclosure is complete, and every team member can explain the code listed above.
-**Signed:** `<Team Leader name>` on behalf of `<Team Name>` · `<date>`
+## 2. How the AI Decision Is Used
+
+The AI output is only one part of the CivicRoute routing workflow.
+
+The final routing flow also uses:
+
+- Submitted GPS coordinates
+- Server-side location context
+- Nearby public-risk locations
+- Versioned jurisdiction rules
+- Department mapping
+- Duplicate detection
+- Transparent priority scoring
+
+CivicRoute does not allow the AI model alone to determine the final civic authority.
+
+---
+
+## 3. Confidence and Human Review
+
+CivicRoute uses confidence thresholds and score margins.
+
+If the photo result is:
+
+- Low confidence
+- Ambiguous
+- Unsupported
+- Inconsistent with the severity estimate
+
+the system does not force an automatic decision.
+
+Instead it marks the complaint:
+
+`REVIEW REQUIRED`
+
+This is intended to reduce overconfident routing from uncertain AI output.
+
+---
+
+## 4. Important AI Limitations
+
+The CLIP model is a general-purpose vision-language model.
+
+Its output:
+
+- Is not a calibrated civic-risk probability
+- Can be wrong on unusual or poor-quality images
+- Can be affected by lighting, angle, framing and obstruction
+- May confuse visually similar complaint categories
+- Does not prove that a reported event actually occurred at the submitted GPS location
+
+Therefore the model should be treated as an assistive classifier, not as an unquestionable authority.
+
+---
+
+## 5. Location and Priority Are Not Generated by an LLM
+
+CivicRoute's location-risk and priority logic are deterministic.
+
+The priority score is based on:
+
+- Location Risk: maximum 50 points
+- Problem Type: maximum 30 points
+- Severity: maximum 20 points
+
+The system does not ask a generative AI model to invent the final priority score.
+
+---
+
+## 6. Jurisdiction Is Not Hallucinated by AI
+
+Jurisdiction routing uses explicit versioned rules with source/provenance metadata.
+
+If the system cannot safely resolve a jurisdiction from an active rule, it sends the complaint to a review queue instead of asking AI to guess the authority.
+
+The current hackathon rules are demonstration locality rules and are not official legal GIS boundary polygons.
+
+---
+
+## 7. Generative AI Assistance During Development
+
+Generative AI tools were used as a development assistant during this hackathon.
+
+Assistance included:
+
+- Brainstorming system architecture
+- Reviewing implementation ideas
+- Drafting code
+- Debugging support
+- Test-case planning
+- Documentation drafting
+- UX wording suggestions
+- Presentation and demo planning
+
+The team reviewed, edited and integrated the generated material into the repository.
+
+---
+
+## 8. Human Responsibility
+
+The MechMavrix team remains responsible for:
+
+- The selected problem and solution direction
+- Architecture decisions
+- Priority model
+- Routing logic
+- Code integration
+- Testing
+- Demonstration
+- Final submission
+- Claims made about the prototype
+
+AI-generated suggestions were not accepted automatically.
+
+---
+
+## 9. Data Sent to the Vision Model
+
+For the current local prototype, complaint images are processed through the locally loaded CLIP model pipeline.
+
+The project does not intentionally send complaint images to a third-party generative AI API for classification.
+
+External web requests are used separately for public map/location context through services such as Nominatim and Overpass.
+
+---
+
+## 10. Responsible AI Design Decisions
+
+CivicRoute includes the following safeguards:
+
+- Low-confidence image results trigger human review
+- Unknown jurisdiction triggers review instead of guessing
+- Nearby reports are treated as duplicate candidates, not automatically as fraud
+- Priority calculation is transparent and inspectable
+- Location context is independently derived by the backend
+- AI is not used to fabricate official municipal boundaries
+- The system preserves complaint history for accountability
+
+---
+
+## 11. AI Benchmarking
+
+The repository includes:
+
+`tests/verify_ai_benchmark.py`
+
+This provides a structure for evaluating image-classification behaviour across complaint categories.
+
+The benchmark dataset is not complete enough to claim production-level model accuracy.
+
+No unsupported accuracy percentage is claimed in this submission.
+
+---
+
+## 12. Production Recommendation
+
+Before real municipal deployment, the AI component should be evaluated using:
+
+- A representative Mysuru civic-complaint image dataset
+- Per-class precision and recall
+- Confusion matrices
+- Poor-quality image testing
+- Adversarial / unrelated image testing
+- Human-review error analysis
+- Bias and coverage checks
+
+The model should remain assistive unless sufficient domain validation demonstrates reliable automatic performance.
+
+---
+
+## 13. Summary
+
+CivicRoute uses AI to help interpret civic complaint photos, but it does not treat AI output as unquestionable truth.
+
+The design principle is:
+
+> Automate when confidence and evidence are sufficient.  
+> Route uncertain cases to human review.
