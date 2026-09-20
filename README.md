@@ -447,10 +447,10 @@ See `docs/limitations.md` for the detailed limitations.
 `http://127.0.0.1:5000`
 
 ### Public MVP
-Will be added before final submission.
+https://meditation-eden-jump-news.trycloudflare.com
 
 ### Public GitHub Repository
-Will be added before final submission.
+https://github.com/Abhishek-Nayak09/MechMavrix-CivicRoute-HackMysuru
 
 ---
 
