@@ -270,3 +270,26 @@ https://drive.google.com/file/d/19J3p0jcaRjO40Urv5JzkNFMRd_4E0tIA/view?usp=drive
 - `08:30` — Closing summary
 
 > Chapter timestamps are provided to help judges navigate the continuous demonstration video.
+
+
+---
+
+## 19. Submission Deliverables
+
+**Live Working MVP:**  
+https://meditation-eden-jump-news.trycloudflare.com
+
+**Demo Video:**  
+https://drive.google.com/file/d/19J3p0jcaRjO40Urv5JzkNFMRd_4E0tIA/view?usp=drive_link
+
+**Video SHA-256 first 16:** `4AC00459BD68FC47`
+
+**1-Page Decision Log:**  
+https://github.com/Abhishek-Nayak09/MechMavrix-CivicRoute-HackMysuru/blob/main/decision-log.pdf
+
+**Decision Log SHA-256 first 16:** `7E60F43A1A40BB34`
+
+**Max 10-Slide Presentation Deck:**  
+https://github.com/Abhishek-Nayak09/MechMavrix-CivicRoute-HackMysuru/blob/main/presentation.pdf
+
+**Presentation SHA-256 first 16:** `D328E2FECCC04FB6`
