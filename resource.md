@@ -239,3 +239,34 @@ CivicRoute is a hackathon prototype.
 External libraries, models, map services and datasets remain subject to their respective licenses, attribution requirements, usage policies and service limits.
 
 No external public-data source is represented by CivicRoute as guaranteed complete, legally authoritative, or real-time unless explicitly stated by that source.
+
+
+---
+
+## 18. HackMysuru Demo Video
+
+**Video duration:** 08:41
+
+**Google Drive:**  
+https://drive.google.com/file/d/19J3p0jcaRjO40Urv5JzkNFMRd_4E0tIA/view?usp=drive_link
+
+**SHA-256:**  
+`4AC00459BD68FC47F7C4915D9E0672A1E07DD7B2A39DFD77DF3406F80A9FA80C`
+
+**SHA-256 first 16 characters:**  
+`4AC00459BD68FC47`
+
+### Video Chapters
+
+- `00:00` — CivicRoute problem and solution overview
+- `00:45` — Citizen complaint submission: photo + GPS
+- `02:00` — AI analysis, routing and priority result
+- `03:20` — Complaint ID and citizen tracking
+- `04:15` — Staff dashboard and complaint follow-through
+- `05:25` — Duplicate / uncertainty handling
+- `06:15` — Offline complaint queue demonstration
+- `07:10` — Reconnect and automatic synchronization
+- `07:50` — Public GitHub repository, architecture and documentation
+- `08:30` — Closing summary
+
+> Chapter timestamps are provided to help judges navigate the continuous demonstration video.
